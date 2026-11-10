@@ -124,3 +124,26 @@ async def test_conflict_rolls_back_project_update(tmp_path):
     with pytest.raises(ValueError):
         import_dataset(path, other)
     assert read_project(path)["project"] == "example"
+
+
+def test_review_import_graph_excludes_vulnerable_optional_packages():
+    import subprocess
+    import sys
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            (
+                "import sys; import sellbird.review; "
+                'assert not any(name == "PIL" or name.startswith("PIL.") or '
+                'name == "sellbird.desktop" or name.startswith("sellbird.desktop.") '
+                "for name in sys.modules)"
+            ),
+        ],
+        capture_output=True,
+        check=False,
+        text=True,
+        timeout=15,
+    )
+    assert result.returncode == 0, result.stderr
