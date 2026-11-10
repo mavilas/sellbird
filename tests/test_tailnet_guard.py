@@ -177,19 +177,19 @@ async def test_whois_cache_and_tagged_identity(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_whois_timeout_kills_and_reaps(monkeypatch):
+async def test_whois_timeout_terminates_and_reaps(monkeypatch):
     import asyncio
 
     from sellbird.tailnet_guard import TailnetWhois
 
     process = AsyncMock()
     process.returncode = None
-    process.kill = __import__("unittest.mock", fromlist=["Mock"]).Mock()
+    process.terminate = __import__("unittest.mock", fromlist=["Mock"]).Mock()
     process.communicate.side_effect = asyncio.TimeoutError
     monkeypatch.setattr(
         "asyncio.create_subprocess_exec", AsyncMock(return_value=process)
     )
     with pytest.raises(asyncio.TimeoutError):
         await TailnetWhois()("100.64.0.9")
-    process.kill.assert_called_once()
+    process.terminate.assert_called_once()
     process.wait.assert_awaited_once()

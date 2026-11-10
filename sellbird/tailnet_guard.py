@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import ipaddress
 import json
+import logging
 import time
 
 SECURITY_HEADERS = [
@@ -43,10 +44,11 @@ class TailnetWhois:
     def __init__(self, executable="/opt/homebrew/bin/tailscale"):
         self.executable = executable
         self.cache = {}
+        self.failed = False
         self.slots = asyncio.Semaphore(4)
 
     async def __call__(self, address):
-        if not tailnet_ip(address):
+        if self.failed or not tailnet_ip(address):
             return None
         cached = self.cache.get(address)
         if cached and cached[0] > time.monotonic():
@@ -66,8 +68,18 @@ class TailnetWhois:
                 output, _ = await asyncio.wait_for(process.communicate(), 2)
             except BaseException:
                 if process.returncode is None:
-                    process.kill()
-                await process.wait()
+                    try:
+                        process.terminate()
+                    except ProcessLookupError:
+                        pass
+                try:
+                    await asyncio.wait_for(process.wait(), 1)
+                except asyncio.TimeoutError:
+                    self.failed = True
+                    logging.getLogger(__name__).error(
+                        "WhoIs did not stop after TERM; refusing further lookups; pid=%s",
+                        process.pid,
+                    )
                 raise
         if process.returncode or len(output) > 65536:
             return None

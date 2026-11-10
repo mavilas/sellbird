@@ -33,7 +33,9 @@ and HEAD paths are admitted; writes, WebSockets, cross-origin browser requests,
 path tricks, duplicate critical headers and unexpected hosts are denied. The app
 uses SQLite read-only connections with query-only enabled. WhoIs uses the local
 daemon with four concurrent processes at most, a two-second timeout and a
-30-second positive-only cache (at most 64 entries). Serve and the public-facing
+30-second positive-only cache (at most 64 entries). A timeout sends TERM and
+waits one more second; a surviving helper disables further lookups and emits
+a metadata-only error for operator intervention. No SIGKILL is used. Serve and the public-facing
 proxy must have their own connection bounds. No application token is created.
 
 Rollback: stop the single review LaunchAgent, remove only its Serve mapping,
