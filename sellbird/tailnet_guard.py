@@ -74,7 +74,7 @@ class TailnetWhois:
                         pass
                 try:
                     await asyncio.wait_for(process.wait(), 1)
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     self.failed = True
                     logging.getLogger(__name__).error(
                         "WhoIs did not stop after TERM; refusing further lookups; pid=%s",

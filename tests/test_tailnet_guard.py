@@ -193,3 +193,22 @@ async def test_whois_timeout_terminates_and_reaps(monkeypatch):
         await TailnetWhois()("100.64.0.9")
     process.terminate.assert_called_once()
     process.wait.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_surviving_helper_disables_new_lookups(monkeypatch):
+
+    from sellbird.tailnet_guard import TailnetWhois
+
+    process = AsyncMock()
+    process.returncode = None
+    process.terminate = __import__("unittest.mock", fromlist=["Mock"]).Mock()
+    process.communicate.side_effect = TimeoutError
+    process.wait.side_effect = TimeoutError
+    spawn = AsyncMock(return_value=process)
+    monkeypatch.setattr("asyncio.create_subprocess_exec", spawn)
+    resolver = TailnetWhois()
+    with pytest.raises(TimeoutError):
+        await resolver("100.64.0.9")
+    assert await resolver("100.64.0.10") is None
+    spawn.assert_awaited_once()
