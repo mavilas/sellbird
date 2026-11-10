@@ -52,6 +52,7 @@ Changelog = "https://github.com/ethanplusai/sellbird/blob/main/CHANGELOG.md"
 
 [project.scripts]
 sellbird = "sellbird.cli:main"
+sellbird-research = "sellbird.research:main"
 # The old name, kept for a while so existing installs keep working (harvey/).
 harvey = "harvey.cli:main"
 
