@@ -142,7 +142,8 @@ def test_package_declares_both_commands():
     project = tomllib.loads((ROOT / "pyproject.toml").read_text())
     assert project["project"]["name"] == "sellbird"
     assert project["project"]["scripts"] == {"sellbird": "sellbird.cli:main",
-                                             "harvey": "harvey.cli:main"}
+                                             "harvey": "harvey.cli:main",
+                                             "sellbird-research": "sellbird.research:main"}
     assert "harvey*" in project["tool"]["setuptools"]["packages"]["find"]["include"]
 
 
